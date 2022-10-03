@@ -20,3 +20,5 @@ This is a little display of some R Data Visualisation. We will mainly use the pa
 ![image](https://user-images.githubusercontent.com/114810020/193703888-402d6fac-bcfd-4c00-a8f0-a971806086ff.png)
 
 <br> 
+
+![image](https://user-images.githubusercontent.com/114810020/193704829-dd383f24-d36d-4511-9d81-07b75e193322.png)
