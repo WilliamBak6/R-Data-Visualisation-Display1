@@ -15,8 +15,8 @@ This is a little display of some R Data Visualisation. We will mainly use the pa
 
 <br>
 
-<br>
-
 ![image](https://user-images.githubusercontent.com/114810020/193701757-8d6ca8d6-ccf9-44a4-ade4-49b22819997a.png)
 
+<br>
 
+![image](https://user-images.githubusercontent.com/114810020/193703888-402d6fac-bcfd-4c00-a8f0-a971806086ff.png)
