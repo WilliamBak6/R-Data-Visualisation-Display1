@@ -3,11 +3,9 @@ This is a little display of some R Data Visualisation. We will mainly use the pa
 
 ### Some Graph Visualisation 
 
-
 <br>
 
 ![image](https://user-images.githubusercontent.com/114810020/193703579-995b8050-3324-4247-8345-3f846348feb4.png)
-
 
 <br>
 
@@ -20,3 +18,7 @@ This is a little display of some R Data Visualisation. We will mainly use the pa
 <br>
 
 ![image](https://user-images.githubusercontent.com/114810020/193703888-402d6fac-bcfd-4c00-a8f0-a971806086ff.png)
+
+<br> 
+
+![image](https://user-images.githubusercontent.com/114810020/193704407-9cc11abc-b062-4861-b4eb-4abbbf0f8af4.png)
