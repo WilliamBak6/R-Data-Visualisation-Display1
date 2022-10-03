@@ -21,4 +21,3 @@ This is a little display of some R Data Visualisation. We will mainly use the pa
 
 <br> 
 
-![image](https://user-images.githubusercontent.com/114810020/193704829-dd383f24-d36d-4511-9d81-07b75e193322.png)
