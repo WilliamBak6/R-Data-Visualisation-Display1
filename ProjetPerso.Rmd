@@ -1,0 +1,477 @@
+---
+title: "Projet Personnel"
+author: "BAKENGA BAMBI William"
+date: "2022-09-20"
+output:
+  html_document: default
+  pdf_document: default
+---
+
+```{r setup, warning = FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(warning = FALSE ,message = FALSE)
+```
+
+## Présentation des données
+
+```{r}
+  library(tidyverse)
+  library(ggplot2)
+  library(ggrepel)
+  library(ggdark)
+  library(dplyr)
+  library(RColorBrewer)
+  library(ggthemes)
+  library(ggthemr)
+  library(bbplot)
+  library(gridExtra)
+  library(zoo)
+  library(ggalt)
+  library(wordcloud)
+  library(tm)
+```
+
+
+```{r}
+  SNCF = read.csv('Regularities_by_liaisons_Trains_France.csv')
+  SNCF = SNCF[,c(1:10,c(22:26))]
+  names(SNCF) = stringr::str_replace(names(SNCF), "min", "")
+  LesNa = is.na(SNCF)
+  LesNa = apply(LesNa, 1, any)
+  LesNa = which(LesNa == TRUE)
+  SNCF = SNCF[-LesNa,]
+```
+
+```{r}
+  carte = map_data("france")
+  head(carte)
+  carte = carte %>% select(-subregion)
+  station = read.csv("liste-des-gares.csv")
+  colonne = c("Libellé.Gare","Commune","Département","coordonnees_geographiques")
+  station = station[, names(station) %in% colonne]
+  names(station)[c(1,3)] = c("Arrival.station","region")
+  
+  station = station %>% separate(coordonnees_geographiques, sep = ",", into = c("lat","long"))
+  
+  station = station %>% mutate(region = stringr::str_replace(region, "Côte-d'Or", "Cote-Dor")) %>%
+    mutate(region = stringr::str_replace(region, "Côte-d'Armor", "Cotes-Darmor")) %>%
+    mutate(region = stringr::str_replace(region,"ô", "o")
+                           , region = stringr::str_replace(region, "è", "e")
+                           , region = stringr::str_replace(region, "é", "e")
+                           ) %>% 
+    mutate(region = recode(region, "Pyrenées-Orientales" = "Pyrenees-Orientales")) %>%
+    mutate(region = recode(region, "Pyrenées-Atlantiques" = "Pyrenees-Atlantiques"))
+
+
+  station = station %>% mutate(Arrival.station = stringr::str_replace_all(Arrival.station ,c("é","â"), c("e","a"))) %>%
+    mutate(Arrival.station = stringr::str_replace_all(Arrival.station ,c("è","ô"), c("e","o"))) %>% 
+    mutate(Arrival.station = recode(Arrival.station, "Angers St Laud" = "Angers Saint Laud"
+                                       , "Bordeaux-St-Jean" = "Bordeaux Saint Jean"
+                                       , "Macon-Loché-TGV" = "Macon Loche"
+                                       , "Marne-La-Valee-Chessy" = "Marne La Valee Chessy"
+                                       , "Metz-Ville" = "Metz"
+                                       , "Nîmes" = "Nimes"
+                                       , "Paris-Gare-de-Lyon" = "Paris Lyon"
+                                       , "St-Étienne-Chateaucreux" = "St Etienne Chateaucreux"
+                                       , "Strasbourg-Ville" = "Strasbourg"
+                                       , "Valence-TGV" = "Valence Alixan TGV"
+                                       , "Angoulême" = "Angouleme"
+                                       , "Lille-Flandres" = "Lille"
+           )) %>%
+    mutate(Arrival.station = stringr::str_replace_all(Arrival.station, "-", " ")
+           , Arrival.station = toupper(Arrival.station)) %>% 
+    mutate(Arrival.station = stringr::str_replace(Arrival.station, "MONTPELLIER ST ROCH", "MONTPELLIER"))
+  
+  carte1 = carte %>% select(-c(long,lat,order))
+  
+  Carte1 = inner_join(carte1, station, by = "region")
+  
+  SNCF = SNCF %>%  mutate(Arrival.station = recode(Arrival.station, "ANGERS SAINT LAUD" = "ANGERS ST LAUD"
+                                                   , "BESANCON FRANCHE COMTE TGV" = "BESANÇON FRANCHE COMTE TGV"
+                                                   , "BORDEAUX ST JEAN" = "BORDEAUX SAINT JEAN"
+                                                   , "MARNE LA VALLEE" = "MARNE LA VALLEE CHESSY"
+                                                   , "NANCY" = "NANCY VILLE"))
+
+```
+
+```{r}
+  SNCF2 = inner_join(SNCF, station, by = "Arrival.station")
+  SNCF2 = unique.data.frame(SNCF2)
+  SNCF2 = SNCF2 %>% mutate(region = recode(region, "Côte-d'Or" = "Cote-dor")) %>%
+    mutate(region = stringr::str_replace(region,"ô", "o")
+                           , region = stringr::str_replace(region, "è", "e")
+                           , region = stringr::str_replace(region, "é", "e")
+                           )
+  CarteSNCF = left_join(SNCF, Carte1, by = "Arrival.station", copy = F)
+  CarteSNCF = unique.data.frame(CarteSNCF)
+  CarteSNCF = CarteSNCF %>% mutate(long = as.numeric(long), lat = as.numeric(lat))
+```
+
+```{r fig.asp=0.9, fig.width=9}
+  ggplot(carte, aes(long, lat, group = group, map_id = region)) + 
+    geom_polygon(aes(fill = region)
+                 , color = "white") + 
+    geom_jitter(data = CarteSNCF, aes(long, lat, group = group
+                                     , size = Number.of.expected.circulations
+                                     , color = Number.of.expected.circulations
+                                     , alpha = Number.of.expected.circulations)
+                , position = position_dodge(width = 2)) + 
+    scale_color_distiller(palette = "YlOrRd"
+                          , direction = 1
+                          , name = "Nombre de Trains prévus pour circuler") + 
+    scale_fill_viridis_d(option = "D") +  
+    scale_size(range = c(1,12)) + 
+    scale_alpha(range = c(0.2,0.9)) + 
+    theme_void() + 
+    guides(fill = "none"
+           , alpha = "none") + 
+    labs(title = "Trains prévus Par Région") + 
+    theme(plot.title = element_text(family = "sans"
+                                    , size = 16
+                                    , face = "bold"))
+  ggsave("Carte_Trains_Circulations.png"
+         , width = 12
+         , height = 14.5
+         , units = "in"
+         , dpi = 300)
+```
+
+```{r}
+  windowsFonts(A = windowsFont("Times New Roman"))
+  summary(SNCF2$Number.of.expected.circulations)
+
+  
+  word = SNCF2 %>% select(Commune, Number.of.expected.circulations) %>%
+    group_by(Commune) %>%
+    summarise(mean_expected_circulations = mean(Number.of.expected.circulations))
+```
+
+```{r fig.asp= 0.8, fig.width= 9}
+  wordcloud(words = word$Commune
+            , freq = word$mean_expected_circulations
+            , min.freq = 2
+            , max.words = 200
+            , colors = brewer.pal(5, "Set2")
+            , rot.per = .25
+            , random.order = F)
+
+
+```
+
+  
+  
+  
+  
+  
+```{r}
+  SNCF2 = SNCF2 %>% group_by(region) %>%
+    mutate(OccurenceRegion = n())
+  q = summary(SNCF2$OccurenceRegion)
+  Q = q["1st Qu."]
+  SNCF2b = SNCF2 %>% filter(OccurenceRegion > Q +100)
+
+```
+
+
+```{r fig.asp=0.8, fig.width=8}
+
+  ggplot(SNCF2b, aes(y = Number.of.cancelled.trains, x = Number.of.expected.circulations, color = Number.of.cancelled.trains, size = Number.of.cancelled.trains)) +
+    geom_point() +
+    geom_text_repel(aes(label = region)
+                    , max.overlaps = 20) +
+    geom_smooth(method = "lm"
+               , color = "grey"
+               , size = .5) +
+    scale_size(range = c(1,5), name = "Nombre de Trains Retardé au Démarage"
+               ) +
+    scale_color_distiller(palette = "Reds", name = "Nombre de Trains Supprimé"
+                          , direction = 1) +
+    labs(title = "Visualisation du lien entre le nombre de trains prévu et le retard"
+         , subtitle = "(Pour les trains SNCF)"
+         , x = "Trains prévus pour la circulation"
+         , y = "Trains supprimer"
+         , caption = "Graph réalisé par Bakenga"
+         ) +
+    theme_hc() +
+    theme(plot.title = element_text(size = 16
+                                    , family = "sans"
+                                    , color = "black"
+                                    , face = "bold"
+                                    , hjust = 0)
+          , text = element_text(color = "black"
+                                , family = "A")
+          , plot.subtitle = element_text(size = 10
+                                         , color = "black"
+                                         , family = "sans"
+                                         )
+          , plot.caption = element_text(size = 10)
+          , axis.title.x = element_text(size = 12
+                                        , hjust = 1)
+          , axis.title.y = element_text(size = 12)
+          , legend.position = "bottom"
+          , legend.box.background = element_rect(fill = "white"
+                                                 , color = "black"
+                                                 , linetype = 1
+                                                 , size = .5)
+          , legend.margin = margin(t = .25, r = 1.25, b = .25, l = 1.25, unit = "cm")
+          , legend.text = element_text(size = 10
+                                       , face = "bold")
+          , legend.key = element_blank()
+          ) +
+    guides(alpha = "none", size = "none")
+
+     ggsave("Visualisation-Lien-Prevu-Retard.png"
+         , width = 12
+         , height = 14.5
+         , units = "in"
+         , dpi = 300)  
+
+```
+
+## En terme de moyenne
+
+```{r fig.asp=0.8, fig.width=8}
+  SNCF2b = SNCF2b %>% group_by(Arrival.station) %>%
+    mutate(moyenne_de_retard_train_depart = mean(Average.delay.of.all.departing.trains...))
+  ggplot(SNCF2b, aes(x = reorder(Arrival.station, moyenne_de_retard_train_depart, ascending = F), y = moyenne_de_retard_train_depart, fill = moyenne_de_retard_train_depart)) +
+    geom_col(na.rm = F
+             , color = "white"
+             , position = "dodge"
+             , alpha = 0.4
+             , width = .75) + 
+    scale_fill_distiller(palette = "Reds", direction = 1) +
+    labs(title = "Moyenne des Retards pour les Trains Circulant Par Gare"
+         , subtitle = "(En minutes)"
+         , caption = "Graph Par Bakenga"
+         , x = "Gares d'Arrivée"
+         , y = "Moyenne de Retard des Trains en Circulation") +
+    bbc_style() +
+    theme(legend.position = "None"
+          , plot.title = element_text(size = 18
+                                      , family ="A"
+                                      , face = "bold"
+                                      , hjust = 0
+                                      , color = "black")
+          , plot.subtitle = element_text(size = 16
+                                         , family = "sans"
+                                         , color = "black"
+                                         , hjust = 0)
+          , axis.title.x = element_text(size = 12
+                                        , hjust = 1
+                                        , color = "slategrey"
+                                        , family = "A")
+          , axis.title.y = element_text(size = 12
+                                        , hjust = 1
+                                        , color = "slategrey"
+                                        , family = "A")
+          , axis.text.x = element_text(size = 10
+                                       , family = "A"
+                                       , angle = -30)
+          , plot.caption = element_text(color = "black"
+                                        , size = 12
+                                        , family = "sans")
+          )
+   ggsave("ColPlot-Mean-Retard.png"
+         , width = 12
+         , height = 14.5
+         , units = "in"
+         , dpi = 300)
+  
+``` 
+
+```{r fig.asp=0.8, fig.width=9, fig.height=8}
+  SNCF2C = all_of(SNCF2) %>% 
+  filter(Year %in% c(2015,2019)) %>% 
+  select(Year, Arrival.station, Average.delay.of.all.departing.trains...) %>% 
+  pivot_wider(names_from = Year, values_from = Average.delay.of.all.departing.trains...) %>%
+  group_by(Arrival.station)
+  
+  SNCF2C$`2019` = sapply(strsplit(gsub('[c()]', '', SNCF2C$`2019`), ","), function(x) mean(as.numeric(x)))
+  SNCF2C$`2015` = sapply(strsplit(gsub('[c()]', '', SNCF2C$`2015`), ","), function(x) mean(as.numeric(x)))
+
+  
+  ggplot(SNCF2C) +
+  geom_segment(aes(x = `2015`, xend = `2019`
+                   , y = Arrival.station, yend = Arrival.station
+                   )
+               , size = 2
+               , na.rm = T
+               , color = "grey") +
+    geom_point(aes(x = `2015`, y = Arrival.station)
+               , na.rm = T
+               , size = 4
+               , color = "#FAAB18") + 
+    geom_point(aes(x = `2019`, y = Arrival.station)
+               , color = "#1380A1"
+               , na.rm = T
+               , size = 4) + 
+    bbc_style() + 
+    labs(title = "Les retards s'accumulent"
+         , subtitle = "Le retard moyen de tout les trains en circulation, 2015-2019"
+         , x = "Année 2015-2019"
+         , y = "Stations d'arrivée"
+         , caption = "Graph Par Bakenga"
+         ) + 
+    theme(text = element_text(size = 14
+                              , family = "A"
+                              )
+          , plot.title = element_text(size = 18
+                                      , face = "bold"
+                                      , color = "grey"
+                                      )
+          , plot.subtitle = element_text(family = "sans"
+                                         )
+          , plot.caption = element_text(family = "sans"
+                                        , color = "grey"
+                                        )
+          , axis.text.y = element_text(angle = 20
+                                       , size = 10))
+  
+   ggsave("Dumbell-Plot-Retard-2015-2019.png"
+         , width = 12
+         , height = 14.5
+         , units = "in"
+         , dpi = 300)
+  
+```
+
+
+
+```{r}
+  ParisSNCF = SNCF2 %>% filter(region == "Paris")
+```
+
+```{r fig.asp=1, fig.width= 8}
+  ParisSNCF2 = ParisSNCF %>% select(Year, Arrival.station, Month, Number.of.late.trains...15) 
+  ParisSNCF2 = unique.data.frame(ParisSNCF2)
+  
+  ParisSNCF2 = ParisSNCF2 %>% group_by(Month, Arrival.station) %>% 
+    mutate(moyenne_train_retard_15 = mean(Number.of.late.trains...15)) 
+
+  ggplot(data = ParisSNCF2, aes(x = Month, y = moyenne_train_retard_15)) + 
+    geom_line(aes(color = factor(Arrival.station)), size = 2) + 
+    scale_color_brewer(palette = "Pastel1", name = "Station d'arrivée") + 
+    labs(title = "Courbes des moyennes des trains en retard par Gare"
+         , subtitle = "(Entre 0 et 15 minutes)"
+         , caption = "Graph Par Bakenga"
+         , x = "Mois"
+         , y = "Moyenne de train"
+         ) + 
+    scale_x_continuous(limits = c(1,12)) + 
+    theme_gdocs() + 
+    theme(plot.title = element_text(family = "sans"
+                                    , size = 16
+                                    , face = "bold"
+                                    , color = "black"
+                                    )
+          , plot.subtitle = element_text(color = "black"
+                                         , size = 12
+                                         )
+          , plot.caption = element_text(color = "black")
+          , legend.position = c(.8,.9)
+          , legend.box.background = element_rect(colour = "black"
+                                                 , linetype = 2
+                                                 , fill = "antiquewhite")
+          )
+  
+   ggsave("LinePlot_Train_Retard_Gare.png"
+         , width = 12
+         , height = 14.5
+         , units = "in"
+         , dpi = 300)
+  
+```
+
+```{r fig.asp=1, fig.width= 8}
+  ParisSNCF2 = ParisSNCF %>% select(Year, Arrival.station, Month, Number.of.late.trains...15) 
+  ParisSNCF2 = unique.data.frame(ParisSNCF2)
+  
+  ParisSNCF2 = ParisSNCF2 %>% group_by(Year, Month) %>% 
+    mutate(moyenne_train_retard_15_year = mean(Number.of.late.trains...15)) %>%
+    mutate(Year = factor(Year))
+  
+  ggplot(data = ParisSNCF2, aes(x = Month, y = moyenne_train_retard_15_year)) + 
+    geom_line(aes(color = factor(Year)), size = 2) + 
+    scale_color_brewer(palette = "Pastel1", name = "Année") + 
+    labs(title = "Courbes des moyennes des trains en retard par ans"
+         , subtitle = "(Entre 0 et 15 minutes)"
+         , caption = "Graph Par Bakenga"
+         , x = "Mois"
+         , y = "Moyenne de train"
+         ) + 
+    scale_x_continuous(limits = c(1,12)) + 
+    theme_gdocs() + 
+    theme(plot.title = element_text(family = "sans"
+                                    , size = 16
+                                    , face = "bold"
+                                    , color = "black"
+                                    )
+          , plot.subtitle = element_text(color = "black"
+                                         , size = 12
+                                         )
+          , plot.caption = element_text(color = "black")
+          , legend.position = c(.95,.9)
+          , legend.box.background = element_rect(colour = "black"
+                                                 , linetype = 2
+                                                 , fill = "antiquewhite")
+          )
+  
+  ggsave("LinePlot_Train_Retard_Year.png"
+         , width = 12
+         , height = 14.5
+         , units = "in"
+         , dpi = 300)
+  
+```
+
+```{r}
+  ParisSNCF2 = ParisSNCF %>% mutate(Period = as.yearmon(Period), Period = as.Date(Period)) %>%
+  mutate(Month = as.integer(ParisSNCF$Month)) %>%
+  mutate(Year = as.factor(as.character(Year))) %>%
+  group_by(Arrival.station, Month) %>%
+  summarise(Total_Supp = sum(Number.of.cancelled.trains)) %>%
+  mutate(pourcentage = Total_Supp/sum(Total_Supp)) 
+
+  ParisSNCF2 = ParisSNCF2 %>%
+    group_by(Arrival.station, Month) %>%
+    mutate(PourcentTotal = sum(pourcentage)) %>% 
+    mutate(Pourcent = paste0(sprintf("%.0f", pourcentage*100),
+                               "%"))
+```
+
+
+```{r fig.asp=1, fig.width= 8}
+  
+  ggplot(ParisSNCF2, aes(x = Month, y = pourcentage, fill = reorder(Arrival.station, Total_Supp))) + 
+    geom_area(alpha = 0.7
+            , position = "fill"
+            , color = "white") +
+    labs(title = "Répartition des pourcentages de Suppression Par Gare"
+         , subtitle = "(Paris)"
+         , x = "Mois"
+         , y = "Pourcentage"
+         , caption = "Graph Par Bakenga") +
+    theme_tufte() + 
+    theme(text = element_text(size = 14
+                              , family = "A"
+                              , color = "slategrey")
+          , plot.title = element_text(size = 18
+                                      , face = "bold"
+                                      )
+          , plot.subtitle = element_text(family = "sans"
+                                         , color = "black")
+          , plot.caption = element_text(family = "sans"
+                                         , color = "black")
+          , legend.position = "bottom"
+          , legend.box.background = element_rect(linetype = 6
+                                                 , color = "black"
+                                                 , size = 1
+                                                 )
+          , legend.text = element_text(size = 8)) + 
+    scale_fill_brewer(palette = "Set1"
+      , name = "Gare d'Arrivée") 
+  
+    
+  
+```
+
