@@ -3,4 +3,6 @@ This is a little display of some R Data Visualisation. We will mainly use the pa
 
 ### Some Graph Visualisation 
 
-![alt text here](0002d.png)
+![alt text](https://github.com/WilliamBak6/R-Data-Visualisation-Display1/tree/main/Graph/00002d.png)
+
+<br>
