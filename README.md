@@ -6,6 +6,9 @@ This is a little display of some R Data Visualisation. We will mainly use the pa
 
 <br>
 
+![image](https://user-images.githubusercontent.com/114810020/193703579-995b8050-3324-4247-8345-3f846348feb4.png)
+
+
 <br>
 
 ![image](https://user-images.githubusercontent.com/114810020/193701182-772de916-d956-4596-b55b-38c415a0b09c.png)
