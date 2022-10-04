@@ -78,5 +78,61 @@
   CarteSNCF = unique.data.frame(CarteSNCF)
   CarteSNCF = CarteSNCF %>% mutate(long = as.numeric(long), lat = as.numeric(lat))
   
-  
+  SNCF2 = SNCF2 %>% group_by(region) %>%
+    mutate(OccurenceRegion = n())
+  q = summary(SNCF2$OccurenceRegion)
+  Q = q["1st Qu."]
+  SNCF2b = SNCF2 %>% filter(OccurenceRegion > Q +100)
+
+
+  ggplot(SNCF2b, aes(y = Number.of.cancelled.trains, x = Number.of.expected.circulations, color = Number.of.cancelled.trains, size = Number.of.cancelled.trains)) +
+    geom_point() +
+    geom_text_repel(aes(label = region)
+                    , max.overlaps = 20) +
+    geom_smooth(method = "lm"
+               , color = "grey"
+               , size = .5) +
+    scale_size(range = c(1,5), name = "Nombre de Trains Retardé au Démarage"
+               ) +
+    scale_color_distiller(palette = "Reds", name = "Nombre de Trains Supprimé"
+                          , direction = 1) +
+    labs(title = "Visualisation du lien entre le nombre de trains prévu et le retard"
+         , subtitle = "(Pour les trains SNCF)"
+         , x = "Trains prévus pour la circulation"
+         , y = "Trains supprimer"
+         , caption = "Graph réalisé par Bakenga"
+         ) +
+    theme_hc() +
+    theme(plot.title = element_text(size = 16
+                                    , family = "sans"
+                                    , color = "black"
+                                    , face = "bold"
+                                    , hjust = 0)
+          , text = element_text(color = "black"
+                                , family = "A")
+          , plot.subtitle = element_text(size = 10
+                                         , color = "black"
+                                         , family = "sans"
+                                         )
+          , plot.caption = element_text(size = 10)
+          , axis.title.x = element_text(size = 12
+                                        , hjust = 1)
+          , axis.title.y = element_text(size = 12)
+          , legend.position = "bottom"
+          , legend.box.background = element_rect(fill = "white"
+                                                 , color = "black"
+                                                 , linetype = 1
+                                                 , size = .5)
+          , legend.margin = margin(t = .25, r = 1.25, b = .25, l = 1.25, unit = "cm")
+          , legend.text = element_text(size = 10
+                                       , face = "bold")
+          , legend.key = element_blank()
+          ) +
+    guides(alpha = "none", size = "none")
+
+    ggsave("Visualisation-Lien-Prevu-Retard.png"
+         , width = 8.5
+         , height = 11
+         , units = "in"
+         , dpi = 300) 
   
