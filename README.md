@@ -1,11 +1,14 @@
 # R-Data-Visualisation-Display1
 This is a little display of some R Data Visualisation. We will mainly use the packages ggplot2,ggthemes, wordcloud, tm and ggrepel 
 
-### Some Graph Visualisation 
+# About the Repository
+
+## Some Graph Visualisation 
 
 <br>
 
-![Code](https://github.com/WilliamBak6/R-Data-Visualisation-Display1/blob/main/R/PointPlot_Visualisation_code.R)
+### Displaying the proportion of delayed trains and expected trains
+### [Code](https://github.com/WilliamBak6/R-Data-Visualisation-Display1/commit/506be34fca7b1216f485fde19618ed1419ca2748)
 
 ![image](https://user-images.githubusercontent.com/114810020/193703579-995b8050-3324-4247-8345-3f846348feb4.png)
 
