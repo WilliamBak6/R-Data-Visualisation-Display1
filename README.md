@@ -21,6 +21,8 @@ We are working with some trains data in French stations. We want to show readers
 
 <br>
 
+### Dumbbell plot displaying the Mean delay for all trains by Station, 2015-2019
+
 ![image](https://user-images.githubusercontent.com/114810020/193701757-8d6ca8d6-ccf9-44a4-ade4-49b22819997a.png)
 
 <br>
@@ -29,6 +31,8 @@ We are working with some trains data in French stations. We want to show readers
 
 ![image](https://user-images.githubusercontent.com/114810020/193703888-402d6fac-bcfd-4c00-a8f0-a971806086ff.png)
 
-<br> 
+<br>
+
+### Late Trains in Paris Stations
 
 ![image](https://user-images.githubusercontent.com/114810020/193705290-da09be51-47ea-408d-8a48-8e74619acfd4.png)
