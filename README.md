@@ -5,6 +5,8 @@ This is a little display of some R Data Visualisation. We will mainly use the pa
 
 <br>
 
+![Code](https://github.com/WilliamBak6/R-Data-Visualisation-Display1/blob/main/R/PointPlot_Visualisation_code.R)
+
 ![image](https://user-images.githubusercontent.com/114810020/193703579-995b8050-3324-4247-8345-3f846348feb4.png)
 
 <br>
