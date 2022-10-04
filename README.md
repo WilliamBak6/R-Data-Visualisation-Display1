@@ -2,6 +2,7 @@
 This is a little display of some R Data Visualisation. We will mainly use the packages ggplot2,ggthemes, wordcloud, tm and ggrepel 
 
 # About the Repository
+We are working with some trains data in French stations. We want to show readers some informations about the delays, the cancelled trains and see which stations, which cities, which region, are use to troubles. 
 
 ## Some Graph Visualisation 
 
